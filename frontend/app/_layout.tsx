@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -13,7 +13,6 @@ const Stack = createStackNavigator();
 
 export default function RootLayout() {
   return (
-    <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Signup" component={Signup} />
@@ -21,6 +20,5 @@ export default function RootLayout() {
         <Stack.Screen name="PasswordGenerator" component={Generator} />
         <Stack.Screen name="PasswordList" component={PassList} />
       </Stack.Navigator>
-    </NavigationContainer>
   );
 }

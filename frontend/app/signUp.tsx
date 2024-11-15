@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { signup } from '@/api';
 
 export default function Signup({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (password !== confirmPassword) {
-      console.log('Passwords do not match');
-      return;
-    }
-    // Implement signup logic here
-    console.log('Signing up:', email, password);
-    navigation.navigate('Login');
+        console.log('Passwords do not match');
+        return;
+      }
+      try {
+        const data = await signup('username', email, password, confirmPassword);
+        console.log('Signup successful:', data);
+        navigation.navigate('Login'); // Navigate back to login screen
+      } catch (error) {
+        console.error('Signup failed:', error);
+      }
   };
 
   return (

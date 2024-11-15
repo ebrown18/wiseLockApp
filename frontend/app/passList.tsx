@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { getPasswords } from './api';
+import { getPasswords } from '../api';
 
 export default function PassList() {
   const [passwords, setPasswords] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchPasswords = async () => {
-      const data = await getPasswords();
-      setPasswords(data);
-    };
+        try {
+            const data = await getPasswords();
+            setPasswords(data);
+          } catch (error) {
+            console.error('Error fetching passwords:', error);
+          }
+        };
     fetchPasswords();
   }, []);
 

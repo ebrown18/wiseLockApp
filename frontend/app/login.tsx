@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import {login} from '@/api';
 
 export default function Login({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Implement login logic here
-    console.log('Logging in:', email, password);
-    navigation.navigate('Home');
+  const handleLogin = async () => {
+    try {
+      const data = await login(email, password);
+      console.log('Login successful:', data);
+      navigation.navigate('Home'); // Navigate to home screen
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   };
 
   return (
