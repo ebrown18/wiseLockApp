@@ -7,8 +7,14 @@ from .models import Password
 from .utils import generate_password
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .models import User, Password
+from accounts.models import User, Password
 from .serializers import UserSerializer, PasswordSerializer
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -20,21 +26,45 @@ class PasswordViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-def login_view(request):
-    if request.method == "POST":
-        form = UserLoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data["email"]
-            password = form.cleaned_data["password"]
-            user = authenticate(request, username=email, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect("home")
-            else:
-                form.add_error(None, "Invalid email or password")
-    else:
-        form = UserLoginForm()
-    return render(request, "users/login.html", {"form": form})
+@api_view(['POST'])
+def signup(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    email = request.data.get('email')
+
+    if not username or not password or not email:
+        return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        return Response({"error": "Invalid email address."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "Username already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create_user(username=username, email=email, password=password)
+    return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    if not username or not password:
+        return Response({"error": "Both username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.filter(username=username).first()
+
+    if user and user.check_password(password):
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        })
+    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 def add_password(request):
