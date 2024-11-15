@@ -1,12 +1,13 @@
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
-from .models import Password
+from .models import Password, User
 from .serializers import PasswordSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework import status, viewsets 
 from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserSerializer
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
@@ -32,6 +33,14 @@ def signup(request):
     user = User.objects.create_user(username=username, email=email, password=password)
     return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+class PasswordViewSet(viewsets.ModelViewSet):
+    queryset = Password.objects.all()
+    serializer_class = PasswordSerializer
+    permission_classes = [IsAuthenticated]
 
 # Login API view (for user authentication)
 @api_view(['POST'])
