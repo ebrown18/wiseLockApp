@@ -1,31 +1,17 @@
-# users/views.py
-
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
-from .forms import UserLoginForm
 from .models import Password
-from .utils import generate_password
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from accounts.models import User, Password
-from .serializers import UserSerializer, PasswordSerializer
-from rest_framework import status
+from .serializers import PasswordSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
-class PasswordViewSet(viewsets.ModelViewSet):
-    queryset = Password.objects.all()
-    serializer_class = PasswordSerializer
-    permission_classes = [IsAuthenticated]
-
-
+# Signup API view (for creating a user)
 @api_view(['POST'])
 def signup(request):
     username = request.data.get('username')
@@ -47,6 +33,7 @@ def signup(request):
     return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
 
 
+# Login API view (for user authentication)
 @api_view(['POST'])
 def login(request):
     username = request.data.get('username')
@@ -66,25 +53,48 @@ def login(request):
     return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-def add_password(request):
-    if request.method == "POST":
-        label = request.POST["label"]
-        value = request.POST["value"]
-        Password.objects.create(user=request.user, label=label, value=value)
-        return redirect("password_list")
-
+# Password List API view (for fetching passwords)
+@api_view(['GET'])
 def password_list(request):
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
     passwords = Password.objects.filter(user=request.user).order_by("label")
-    return render(request, "users/password_list.html", {"passwords": passwords})
+    serializer = PasswordSerializer(passwords, many=True)
+    return Response(serializer.data)
 
+
+# Add Password API view (to add a password)
+@api_view(['POST'])
+def add_password(request):
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    label = request.data.get('label')
+    value = request.data.get('value')
+
+    if not label or not value:
+        return Response({"error": "Label and value are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create and save the password
+    password = Password.objects.create(user=request.user, label=label, value=value)
+    serializer = PasswordSerializer(password)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# Update Password API view (to update an existing password)
+@api_view(['POST'])
 def update_password(request, password_id):
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
     password = Password.objects.get(id=password_id, user=request.user)
-    if request.method == "POST":
-        new_value = request.POST["new_password"]
-        password.value = new_value
-        password.save()
-        return redirect("password_list")
-    return render(request, "users/update_password.html", {"password": password})
+    new_value = request.data.get("new_password")
 
+    if not new_value:
+        return Response({"error": "New password value is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+    password.value = new_value
+    password.save()
+    serializer = PasswordSerializer(password)
+    return Response(serializer.data)
