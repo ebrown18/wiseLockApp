@@ -5,6 +5,20 @@ from django.shortcuts import render, redirect
 from .forms import UserLoginForm
 from .models import Password
 from .utils import generate_password
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from .models import User, Password
+from .serializers import UserSerializer, PasswordSerializer
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class PasswordViewSet(viewsets.ModelViewSet):
+    queryset = Password.objects.all()
+    serializer_class = PasswordSerializer
+    permission_classes = [IsAuthenticated]
+
 
 def login_view(request):
     if request.method == "POST":
@@ -42,4 +56,5 @@ def update_password(request, password_id):
         password.save()
         return redirect("password_list")
     return render(request, "users/update_password.html", {"password": password})
+
 
