@@ -5,3 +5,6 @@ Backend: Python, Django
 Frontend: JS, React Expo
     Screens: Home/Welcome, Login, Sign Up, Passwords List, Generate New Password, Update Password
 
+Requirements: Need python (activate a virtual environment), node, django, react expo
+start backend server with python manage.py runserver
+start frontend with npx start

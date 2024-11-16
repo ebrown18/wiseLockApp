@@ -37,9 +37,9 @@ export default function Signup({ navigation }: any) {
       return;
     }
     try {
-      const data = await signup('username', email, password, confirmPassword); // Replace 'username' with a field if required
+      const data = await signup('username', email, password, confirmPassword); 
       console.log('Signup successful:', data);
-      navigation.navigate('Login'); // Navigate to Login screen
+      navigation.navigate('Login'); 
     } catch (error: any) {
       setError(error.response?.data?.error || 'Signup failed.');
       setModalVisible(true);

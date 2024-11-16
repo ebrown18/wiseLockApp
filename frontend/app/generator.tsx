@@ -66,7 +66,6 @@ export default function Generator() {
       <Button title="Generate Password" onPress={generatePassword} />
       <Button title="Save Password" onPress={handleSavePassword} />
 
-      {/* Modal to show generated password and label */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -97,7 +96,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
   },
   modalContainer: {
     backgroundColor: 'white',
